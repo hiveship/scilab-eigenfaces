@@ -9,20 +9,23 @@ path_sauvegardes = strcat([path_base slash_c 'data']); // Répertoire où sauveg
 function memoriser(information, nom_fichier, estString)
     check = chdir(path_sauvegardes);
     assert_checktrue(check);
+
     nom_fichier_csv = strcat([nom_fichier '.csv']);
-    csvWrite(information, nom_fichier_csv);
+    csvWrite(information, nom_fichier_csv); // Si le fichier éxiste déjà il y a réécriture
     chdir('..');
-    
-    // Test pour vérifier qu'on est capable de récupérer correctement ce qu'on sauvegarde // TODO: commenter les tests ?
-    information_recup = recupererInformation(nom_fichier, estString);
-    assert_checkequal(information, information_recup);
+
+    // Test pour vérifier qu'on est capable de récupérer correctement ce qu'on sauvegarde 
+    //information_recup = recupererInformation(nom_fichier, estString);
+    //assert_checkequal(information, information_recup);
 endfunction
 
 function information = recupererInformation(nom_fichier, estString)
     check = chdir(path_sauvegardes); // On veux charger une donnée donc le répertoire cible est supposé éxistant
     assert_checktrue(check);
+
     nom_fichier_csv = strcat([nom_fichier '.csv']);
     // Scilab ne gère pas de la même manière la lecture de csv contenant des string ou des doubles (les identifiants d'individus sont des strings)
+    assert_checktrue(isfile(nom_fichier_csv)); // Vérifie que le fichier que l'on veux lire éxiste
     if estString == %t then
         information = read_csv(nom_fichier_csv);
     else
