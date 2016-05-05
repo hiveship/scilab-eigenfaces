@@ -1,5 +1,23 @@
 clc;
 
+// ======================
+// VARIABLES / CONSTANTES
+// ======================
+
+nombre_individus = 40; 
+nombre_image_apprentissage = 5; // Nombre de photos par individu réservées à l'apprentissage TODO: Faire varier pour observer l'influence
+nombre_images_total = nombre_individus * nombre_image_apprentissage;
+
+nombre_descripteurs = 48; // 48 fixé ("arbitrairement") pour avoir un bon résultat sans trop d'infos supplémentaires
+
+assert_checktrue(nombre_individus > 0);
+assert_checktrue(nombre_image_apprentissage > 0);
+assert_checktrue(nombre_descripteurs > 0);
+
+// =====================
+// PHASE D'APPRENTISSAGE
+// =====================
+
 function apprentissage()
     [images,repertoires] = chargerImages(200); // On prends la moitié de la base totale d'images soit 400/2=200
 
@@ -27,32 +45,30 @@ function [images,repertoires] = chargerImages(images_voulues)
             repertoires($ + 1) = string(resultat_ls(i));
         end
     end
-
-    nombre_repertoires = size(repertoires, 1); 
-    images_par_repertoire = 5; // TODO: Dépends de la base d'images utilisée et des proportions prises pour l'apprentissage
+    assert_checktrue(size(repertoires, 1) == nombre_individus); 
 
     image_num = 0; // Nombre d'images total déjà chargées
     dernier_identifiant = 0; // Variable temporaire pour la construction du veteur identifiant
-    for indice_repertoire = 1 : nombre_repertoires // Itération sur chaque dossier contenant des images
+    for indice_repertoire = 1 : nombre_individus 
         path_temp = strcat([path_images slash_c repertoires(indice_repertoire)]);
         check = chdir(path_temp); // On est assuré que c'est bien un repertoire
         assert_checktrue(check);
 
-        // Choix éffectué : prendre les 'images_par_repertoire') premières images triées par ordre croissant (1.pgm, ... 5.pgm) pour l'apprentissage. D'autres choix possible ayant une influence sur le résultat de l'apprentissage !
-        for indice_image = 1 : images_par_repertoire
+        // Choix éffectué : prendre les premières images triées par ordre croissant (1...n). D'autres choix possible ayant une influence sur le résultat de l'apprentissage !
+        for indice_image = 1 : nombre_image_apprentissage
             image_num = image_num + 1;
-            nom_image = strcat([string(indice_image) '.pgm']); // Dépencdant de la base d'images
+            nom_image = strcat([string(indice_image) image_extension]); // Dépencdant de la base d'images
             assert_checktrue(isfile(nom_image)); // Vérifie que l'image éxiste bien
             image_originale = chargerImage(nom_image);
-            images(:, :, image_num) =  redimensionnerImage(image_originale, 56, 46); // hypermatrice contenant les images réduite
+            images(:, :, image_num) =  redimensionnerImage(image_originale); // hypermatrice contenant les images réduite
             vecteur_identifiants(image_num) = repertoires(indice_repertoire); // Création d'un vecteur contenant l'identifiant de l'individu pour chaque image chargée
         end
         check = chdir('..');
         assert_checktrue(check);
     end
 
-    assert_checktrue(image_num == 200); // TODO: Dépends de la base d'images utilisée et des proportions prises pour l'apprentissage
-    assert_checktrue(size(vecteur_identifiants,1) == 200); // TODO: Dépends de la base d'images utilisée et des proportions prises pour l'apprentissage
+    assert_checktrue(image_num == nombre_images_total); 
+    assert_checktrue(size(vecteur_identifiants,1) == nombre_images_total);
     assert_checktrue(size(vecteur_identifiants,2) == 1);
 
     memoriser(vecteur_identifiants, 'identifiants', %t);
@@ -63,7 +79,7 @@ function [T,moyenne,ecart_type] = creerT (images, repertoires)
         image_vecteur = imageEnVecteur(images(:,:,i));
         T(i,:) = image_vecteur;
     end
-    assert_checktrue(size(T,1) == 200); // Nombre d'images // TODO: Dépends de la base d'images utilisée et des proportions prises pour l'apprentissage
+    assert_checktrue(size(T,1) == nombre_images_total); 
     assert_checktrue(size(T,2) == 2576); // Toute l'image rendu sur une ligne. Dépends de la taille des images pour l'apprentissage, on a choisi de travailler uniquement en 56*46
 
     // Calculs de la moyenne et de l'écart-type nécéssaire pour les normalisations
@@ -90,18 +106,18 @@ function eigenfaces = analyseComposantesPrincipales(T_normalise)
     matrice_covariance = cov(T_normalise);
     [U,S,V] = svd(matrice_covariance); // U correspond aux eigenfaces   
 
-    // On tronque les eigenfaces aux 48 premiers vecteurs (colonnes)
-    eigenfaces = U(:, [1:1:48]); // 48 fixé ("arbitrairement") pour avoir un bon résultat sans trop d'infos supplémentaires
+    // On tronque les eigenfaces aux 'nombre_descripteurs' premiers vecteurs (colonnes)
+    eigenfaces = U(:, [1:1:nombre_descripteurs]); 
     assert_checktrue(size(eigenfaces, 1) == 2576); 
 
-    memoriser(eigenfaces, 'eigenfaces_48', %f);
+    memoriser(eigenfaces, 'eigenfaces', %f);
 endfunction
 
 function descripteurs = calculDescripteurs(T_normalise, eigenfaces) 
     // Les descripteurs sont en quelque sorte un résumé de la base d'image d'apprentissage
     descripteurs = T_normalise * eigenfaces; 
-    assert_checktrue(size(descripteurs, 1) == 200); // TODO: calculer ?
-    assert_checktrue(size(descripteurs, 2) == 48);
+    assert_checktrue(size(descripteurs, 1) == nombre_images_total);
+    assert_checktrue(size(descripteurs, 2) == nombre_descripteurs);
 
     memoriser(descripteurs, 'descripteurs', %f);
 endfunction
