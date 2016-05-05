@@ -5,9 +5,9 @@ clc;
 // ======================
 
 identifiant_individu_requete = 's4';
-image_requete = 10; 
-assert_checktrue(image_requete > 5 & image_requete <= 10); // Prendre une image n'ayant pas été utilisée dans la base de test ! // TODO: Test uniquement valable pour la base d'image fournie
-photo_requete = string(image_requete);
+id_image_requete = 10; 
+assert_checktrue(id_image_requete > 5 & id_image_requete <= 10); // Prendre une image n'ayant pas été utilisée dans la base de test ! // TODO: Test uniquement valable pour la base d'image fournie
+photo_requete = string(id_image_requete); // Pour la concaténation de strings
 
 // ======================
 // PHASE DE RECONAISSANCE
@@ -40,9 +40,9 @@ function [image_requete, image_requete_redim, descripteur_requete] = preparerReq
     requete_vecteur = imageEnVecteur(image_requete_redim);
 
     // Récupérer les données calculées pendant l'apprentissage
-    moyenne = recupererInformation('moyenne_T', %f);
-    ecart_type = recupererInformation('ecart_type_T', %f);
-    requete_normalise = normaliser(requete_vecteur, moyenne, ecart_type); // Appel à la même fonction que pour la phase d'apprentissage
+    moyenne_apprentissage = recupererInformation('moyenne_T', %f);
+    ecart_type_apprentissage = recupererInformation('ecart_type_T', %f);
+    requete_normalise = normaliser(requete_vecteur, moyenne_apprentissage, ecart_type_apprentissage); // Appel à la même fonction que pour la phase d'apprentissage
 
     eigenfaces = recupererInformation('eigenfaces', %f);
     descripteur_requete = requete_normalise * eigenfaces;
@@ -54,16 +54,18 @@ function index_meilleur_descripteur = comparaisonDescripteurs(descripteur_requet
     descripteur_requete = repmat(descripteur_requete, size(descripteurs_tous_individus, 1), 1); // Repète le descripteur de l'image requête pour obtenir une matrice de la même taille que l'enssemble des descripteurs
 
     delta = descripteurs_tous_individus - descripteur_requete;
+    
     // On veux le descripteur ayant le plus de ressemblance :  dont la distance avec le descripteur de la requête est le plus faible
     distances = delta * delta'; // Calcul des normes pour pouvoir comparer les deux descripteurs (ce sont des vecteurs)
+    
     // La diagonale contient la distance entre le descripteur de la requête et chacun des autres edescripteurs. (On a fait des calculs "pour rien" (les autres termes) mais c'est plus rapide que de faire des boucles)
     [dsitance_min, index_meilleur_descripteur] = min(diag(distances)); 
 endfunction
 
 // Retrouver à quel individu appartient un descripteur
-function individu = retrouverIndividu(index_descripteur)
+function identifiant_individu_reconnu = retrouverIndividu(index_descripteur)
     identifiants_individus = recupererInformation('identifiants', %t);
-    individu = identifiants_individus(index_descripteur);
+    identifiant_individu_reconnu = identifiants_individus(index_descripteur);
 endfunction
 
 clc;

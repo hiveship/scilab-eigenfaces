@@ -8,7 +8,7 @@ nombre_individus = 40;
 nombre_image_apprentissage = 5; // Nombre de photos par individu réservées à l'apprentissage TODO: Faire varier pour observer l'influence
 nombre_images_total = nombre_individus * nombre_image_apprentissage;
 
-nombre_descripteurs = 48; // 48 fixé ("arbitrairement") pour avoir un bon résultat sans trop d'infos supplémentaires
+nombre_descripteurs = 48; // On garde un certains nombre de descripteurs pour avoir de bons résultats sans trop d'informations supperflus. Fixé "arbitrairement" 
 
 assert_checktrue(nombre_individus > 0);
 assert_checktrue(nombre_image_apprentissage > 0);
@@ -19,9 +19,9 @@ assert_checktrue(nombre_descripteurs > 0);
 // =====================
 
 function apprentissage()
-    [images,repertoires] = chargerImages(200); // On prends la moitié de la base totale d'images soit 400/2=200
+    images = chargerImages(); 
 
-    [T,moyenne,ecart_type] = creerT(images, repertoires); // T est le tableau individu-attribut
+    [T,moyenne,ecart_type] = creerT(images); // T est le tableau individu-attribut
     // afficherImage(T);
 
     T_normalise = normaliser(T, moyenne, ecart_type);
@@ -30,11 +30,11 @@ function apprentissage()
     eigenfaces = analyseComposantesPrincipales(T_normalise);
     //afficherEigenfaces(eigenfaces); 
 
-    descripteurs = calculDescripteurs(T_normalise, eigenfaces);
+    descripteurs = calculDescripteurs(T_normalise, eigenfaces); // Pas de sens de l'afficher
 endfunction
 
 // Récupère la moitiée des images proposées. Elles vont constituer la base d'apprentissage.
-function [images,repertoires] = chargerImages(images_voulues)
+function images = chargerImages()
     check = chdir(path_images); // Nécéssaire pour faire le ls
     assert_checktrue(check);
 
@@ -42,26 +42,26 @@ function [images,repertoires] = chargerImages(images_voulues)
     // Supprimer ce qui n'est pas répertoire, par exemples de fichiers cachés, README...
     for i = 1 : size(resultat_ls, 1)
         if isdir(resultat_ls(i)) == %t then 
-            repertoires($ + 1) = string(resultat_ls(i));
+            individus($ + 1) = string(resultat_ls(i));
         end
     end
-    assert_checktrue(size(repertoires, 1) == nombre_individus); 
+    assert_checktrue(size(individus, 1) == nombre_individus); 
 
     image_num = 0; // Nombre d'images total déjà chargées
     dernier_identifiant = 0; // Variable temporaire pour la construction du veteur identifiant
-    for indice_repertoire = 1 : nombre_individus 
-        path_temp = strcat([path_images slash_c repertoires(indice_repertoire)]);
-        check = chdir(path_temp); // On est assuré que c'est bien un repertoire
+    for indice_individu = 1 : nombre_individus 
+        path_temp = strcat([path_images slash_c individus(indice_individu)]);
+        check = chdir(path_temp); 
         assert_checktrue(check);
 
         // Choix éffectué : prendre les premières images triées par ordre croissant (1...n). D'autres choix possible ayant une influence sur le résultat de l'apprentissage !
         for indice_image = 1 : nombre_image_apprentissage
             image_num = image_num + 1;
-            nom_image = strcat([string(indice_image) image_extension]); // Dépencdant de la base d'images
+            nom_image = strcat([string(indice_image) image_extension]); 
             assert_checktrue(isfile(nom_image)); // Vérifie que l'image éxiste bien
             image_originale = chargerImage(nom_image);
-            images(:, :, image_num) =  redimensionnerImage(image_originale); // hypermatrice contenant les images réduite
-            vecteur_identifiants(image_num) = repertoires(indice_repertoire); // Création d'un vecteur contenant l'identifiant de l'individu pour chaque image chargée
+            images(:, :, image_num) =  redimensionnerImage(image_originale); // Hypermatrice contenant les images réduites
+            vecteur_identifiants(image_num) = individus(indice_individu); // Création d'un vecteur contenant l'identifiant de l'individu pour chaque image chargée
         end
         check = chdir('..');
         assert_checktrue(check);
@@ -74,37 +74,35 @@ function [images,repertoires] = chargerImages(images_voulues)
     memoriser(vecteur_identifiants, 'identifiants', %t);
 endfunction
 
-function [T,moyenne,ecart_type] = creerT (images, repertoires)
+function [T,moyenne,ecart_type] = creerT (images)
     for i = 1 : size(images, 3)
-        image_vecteur = imageEnVecteur(images(:,:,i));
-        T(i,:) = image_vecteur;
+        T(i,:) = imageEnVecteur(images(:,:,i));
     end
     assert_checktrue(size(T,1) == nombre_images_total); 
     assert_checktrue(size(T,2) == 2576); // Toute l'image rendu sur une ligne. Dépends de la taille des images pour l'apprentissage, on a choisi de travailler uniquement en 56*46
 
     // Calculs de la moyenne et de l'écart-type nécéssaire pour les normalisations
-    moyenne = mean(T, 1);
-    ecart_type = stdev(T, 1);
+    moyenne = mean(T,1);
+    ecart_type = stdev(T,1);
 
     memoriser(moyenne, 'moyenne_T', %f);
     memoriser(ecart_type,'ecart_type_T', %f);
 endfunction
 
 function T_normalise = normaliser(T, moyenne, ecart_type)
-    nombre_individu = size(T, 1); 
+    nombre_individu = size(T,1); 
     moyenne = repmat(moyenne, nombre_individu, 1);
     ecart_type = repmat(ecart_type, nombre_individu, 1);
     T_normalise = T - moyenne;
     T_normalise = T_normalise ./ ecart_type;
 
     // Après normalisation on ne doit pas changer la taille de T
-    assert_checktrue(size(T_normalise, 1) == size(T,1)); 
-    assert_checktrue(size(T_normalise, 2) == size(T,2)); 
+    assert_checktrue(size(T_normalise, 1) == size(T, 1)); 
+    assert_checktrue(size(T_normalise, 2) == size(T, 2)); 
 endfunction
 
 function eigenfaces = analyseComposantesPrincipales(T_normalise)
-    matrice_covariance = cov(T_normalise);
-    [U,S,V] = svd(matrice_covariance); // U correspond aux eigenfaces   
+    [U,S,V] = svd(cov(T_normalise)); // U correspond aux eigenfaces   
 
     // On tronque les eigenfaces aux 'nombre_descripteurs' premiers vecteurs (colonnes)
     eigenfaces = U(:, [1:1:nombre_descripteurs]); 
@@ -126,7 +124,7 @@ endfunction
 function afficherEigenfaces(eigenfaces)
     render = [];
     eigenfaces = eigenfaces * 1000 + 128;
-    for i = 1 : size(eigenfaces,2) // On a l'eigenfaces sous forme d'une seule ligne, pour affichage on remet en [lignes,colonnes]
+    for i = 1 : size(eigenfaces, 2) // On a l'eigenfaces sous forme d'une seule ligne, pour affichage on remet en [lignes,colonnes]
         image = matrix(eigenfaces(:, i), 56, 46);
         render = [render image];
     end
@@ -134,5 +132,5 @@ function afficherEigenfaces(eigenfaces)
 endfunction
 
 clc;
-stacksize('max'); // Eviter des dépassement de pile mémoire sur Scilab
+stacksize('max'); // Eviter des dépassement de pile mémoire sur Scilab pour le calcul de la matrice de covariance
 apprentissage;

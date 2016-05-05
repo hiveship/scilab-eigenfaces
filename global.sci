@@ -12,7 +12,6 @@ path_sauvegardes = strcat([path_base slash_c 'data']); // Répertoire où sauveg
 
 image_extension = '.pgm';
 
-
 // =====================
 // FONCTIONS UTILITAIRES
 // =====================
