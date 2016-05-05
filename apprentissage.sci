@@ -1,33 +1,40 @@
+clc;
+
 function apprentissage()
-    images = chargerImages(path_images, 200); // On prends la moitié de la base totale d'images soit 400/2=200
+    [images,repertoires] = chargerImages(200); // On prends la moitié de la base totale d'images soit 400/2=200
     
-    [T,moyenne,ecart_type] = creerT(images); // T est le tableau individu-attribut
+    [T,moyenne,ecart_type] = creerT(images, repertoires); // T est le tableau individu-attribut
    // afficherImage(T); // OK
    
     T_normalise = normaliser(T, moyenne, ecart_type);
     //afficherImage(T_normalise); // OK
     
     eigenfaces = analyseComposantesPrincipales(T_normalise);
-    //afficherEigenfaces(eigenfaces); // OK
+    afficherEigenfaces(eigenfaces); // OK
     
     descripteurs = calculDescripteurs(T_normalise, eigenfaces);
 endfunction
 
 // Récupère la moitiée des images proposées. Elles vont constituer la base d'apprentissage.
-function images = chargerImages(path, images_voulues)
-    check = chdir(path);
+function [images,repertoires] = chargerImages(images_voulues)
+    check = chdir(path_images);
     assert_checktrue(check);
     
-    repertoires = ls(path); // TODO: fichier cachés ./foo
+    resultat_ls = ls(path_images); 
+    // Supprimer ce qui n'est pas répertoire, par exemples de fichiers cachés, README...
+    for i = 1 : size(resultat_ls,1)
+        if isdir(resultat_ls(i)) == %t then 
+            repertoires($+1) = string(resultat_ls(i));
+        end
+    end
+        
     nombre_repertoires = size(repertoires, 1); 
     images_par_repertoire = 5; // TODO: Rendre ce calcul plus générique
-    
+   
     image_num = 0; // Nombre d'images total déjà chargées
+    dernier_identifiant = 0; // Variable temporaire pour la construction du veteur identifiant
     for indice_repertoire = 1 : nombre_repertoires // Itération sur chaque dossier contenant des images
-        path_temp = strcat([path slash_c repertoires(indice_repertoire)]);
-        if isdir(path_temp) <> %t then // Pas un répertoire, on passe 
-            continue;
-        end
+        path_temp = strcat([path_images slash_c repertoires(indice_repertoire)]);
         check = chdir(path_temp); // On est assuré que c'est bien un repertoire
         assert_checktrue(check);
         
@@ -37,15 +44,19 @@ function images = chargerImages(path, images_voulues)
             nom_image = strcat([string(indice_image) '.pgm']); // Dépencdant de la base d'images
             assert_checktrue(isfile(nom_image)); // Vérifie que l'image éxiste bien
             image_originale = chargerImage(nom_image);
-            images(:, :, image_num) =  redimensionnerImage(image_originale, 56, 46); // hypermatrice contenant les images réduites
+            images(:, :, image_num) =  redimensionnerImage(image_originale, 56, 46); // hypermatrice contenant les images réduite
+            vecteur_identifiants(image_num) = repertoires(indice_repertoire); // Création d'un vecteur contenant l'identifiant de l'individu pour chaque image chargée
         end
         check = chdir('..');
         assert_checktrue(check);
     end
     assert_checktrue(image_num == 200); // TODO: uniquement pour le TP, faire avec un pourcentage
+    assert_checktrue(size(vecteur_identifiants,1) == 200);
+    assert_checktrue(size(vecteur_identifiants,2) == 1);
+    memoriser(vecteur_identifiants, 'identifiants', %t);
 endfunction
 
-function [T,moyenne,ecart_type] = creerT (images)
+function [T,moyenne,ecart_type] = creerT (images, repertoires)
     for i = 1 : size(images, 3)
         image_vecteur = imageEnVecteur(images(:,:,i));
         T(i,:) = image_vecteur;
@@ -57,8 +68,8 @@ function [T,moyenne,ecart_type] = creerT (images)
      moyenne = mean(T, 1);
      ecart_type = stdev(T, 1);
      
-     memoriser(moyenne, 'moyenne_T');
-     memoriser(ecart_type,'ecart_type_T');
+     memoriser(moyenne, 'moyenne_T', %f);
+     memoriser(ecart_type,'ecart_type_T', %f);
 endfunction
 
 function T_normalise = normaliser(T, moyenne, ecart_type)
@@ -85,7 +96,7 @@ function eigenfaces = analyseComposantesPrincipales(T_normalise)
     assert_checktrue(size(eigenfaces, 1) == 2576); // TODO: le calculer ?
     assert_checktrue(size(eigenfaces, 2) == 48); 
     
-    memoriser(eigenfaces, 'eigenfaces_48');
+    memoriser(eigenfaces, 'eigenfaces_48', %f);
 endfunction
 
 function descripteurs = calculDescripteurs(T_normalise, eigenfaces) // projection
@@ -94,14 +105,14 @@ function descripteurs = calculDescripteurs(T_normalise, eigenfaces) // projectio
     assert_checktrue(size(descripteurs, 1) == 200); // TODO: calculer ?
     assert_checktrue(size(descripteurs, 2) == 48);
     
-    memoriser(descripteurs, 'descripteurs');
+    memoriser(descripteurs, 'descripteurs', %f);
 endfunction
 
 // On doit retravailler les eigenfaces pour pouvoir les afficher
 function afficherEigenfaces(eigenfaces)
     render = [];
     eigenfaces = eigenfaces * 1000 + 128;
-    for i = 1 : size(eigenfaces,2)
+    for i = 1 : size(eigenfaces,2) // On a l'eigenfaces sous forme d'une seule ligne, pour affichage on remet en [lignes,colonnes]
         image = matrix(eigenfaces(:,i), 56, 46);
         render = [render image];
     end
@@ -110,4 +121,4 @@ endfunction
 
 clc;
 stacksize('max'); // Eviter des dépassement de pile mémoire sur Scilab
-apprentissage
+apprentissage;

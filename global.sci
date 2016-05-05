@@ -1,10 +1,12 @@
+clc;
+
 slash_c = '\'; // Dépends du système utilisé
-path_base = '\\Mac\Home\Desktop\TraitementImage\CCARIOU'; // Emplacement racine du projet 
+path_base = '\\Mac\Home\Desktop\TraitementImage\CCARIOU\eigenfaces'; // Emplacement racine du projet 
 path_images = strcat([path_base slash_c 'att_faces']); 
 path_sauvegardes = strcat([path_base slash_c 'data']); // Répertoire où sauvegarder/charger les données calculées
 
-// Sauvegarde une donnée en l'enregistrant au format CSV
-function memoriser(information, nom_fichier)
+// Sauvegarde une donnée en l'enregistrant au format CSV. 'estString' indique si on sauvegarde une information contenant des chaines de caractères
+function memoriser(information, nom_fichier, estString)
     check = chdir(path_sauvegardes);
     assert_checktrue(check);
     nom_fichier_csv = strcat([nom_fichier '.csv']);
@@ -12,15 +14,20 @@ function memoriser(information, nom_fichier)
     chdir('..');
     
     // Test pour vérifier qu'on est capable de récupérer correctement ce qu'on sauvegarde // TODO: commenter les tests ?
-    information_recup = recupererInformation(nom_fichier);
+    information_recup = recupererInformation(nom_fichier, estString);
     assert_checkequal(information, information_recup);
 endfunction
 
-function information = recupererInformation(nom_fichier)
+function information = recupererInformation(nom_fichier, estString)
     check = chdir(path_sauvegardes); // On veux charger une donnée donc le répertoire cible est supposé éxistant
     assert_checktrue(check);
     nom_fichier_csv = strcat([nom_fichier '.csv']);
-    information = csvRead(nom_fichier_csv);
+    // Scilab ne gère pas de la même manière la lecture de csv contenant des string ou des doubles (les identifiants d'individus sont des strings)
+    if estString == %t then
+        information = read_csv(nom_fichier_csv);
+    else
+        information = csvRead(nom_fichier_csv);
+    end
 endfunction
 
 // Converti une matrice image en un seul vecteur ligne
