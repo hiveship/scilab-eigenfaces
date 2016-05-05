@@ -102,6 +102,7 @@ function T_normalise = normaliser(T, moyenne, ecart_type)
 endfunction
 
 function eigenfaces = analyseComposantesPrincipales(T_normalise)
+    stacksize('max'); // Eviter des dépassement de pile mémoire sur Scilab pour le calcul de la matrice de covariance
     [U,S,V] = svd(cov(T_normalise)); // U correspond aux eigenfaces   
 
     // On tronque les eigenfaces aux 'nombre_descripteurs' premiers vecteurs (colonnes)
@@ -132,5 +133,4 @@ function afficherEigenfaces(eigenfaces)
 endfunction
 
 clc;
-stacksize('max'); // Eviter des dépassement de pile mémoire sur Scilab pour le calcul de la matrice de covariance
 apprentissage;

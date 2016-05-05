@@ -49,15 +49,14 @@ function [image_requete, image_requete_redim, descripteur_requete] = preparerReq
 endfunction
 
 function index_meilleur_descripteur = comparaisonDescripteurs(descripteur_requete) 
-    descripteurs_tous_individus = recupererInformation('descripteurs', %f);
-
     descripteur_requete = repmat(descripteur_requete, size(descripteurs_tous_individus, 1), 1); // Repète le descripteur de l'image requête pour obtenir une matrice de la même taille que l'enssemble des descripteurs
 
+    descripteurs_tous_individus = recupererInformation('descripteurs', %f);
     delta = descripteurs_tous_individus - descripteur_requete;
-    
+
     // On veux le descripteur ayant le plus de ressemblance :  dont la distance avec le descripteur de la requête est le plus faible
     distances = delta * delta'; // Calcul des normes pour pouvoir comparer les deux descripteurs (ce sont des vecteurs)
-    
+
     // La diagonale contient la distance entre le descripteur de la requête et chacun des autres edescripteurs. (On a fait des calculs "pour rien" (les autres termes) mais c'est plus rapide que de faire des boucles)
     [dsitance_min, index_meilleur_descripteur] = min(diag(distances)); 
 endfunction

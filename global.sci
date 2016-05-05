@@ -6,7 +6,7 @@ clc;
 
 slash_c = '\'; // TODO: Dépends du système utilisé
 
-path_base = '\\Mac\Home\Desktop\TraitementImage\CCARIOU\eigenfaces'; // Emplacement racine du projet. TODO: A MODIFIER POUR CHAQUE UTILISATEUR
+path_base = '\\Mac\Home\Desktop\TraitementImage\CCARIOU\eigenfaces'; // Emplacement racine du projet. TODO: A modifier pour chaque utilisateur
 path_images = strcat([path_base slash_c 'att_faces']);  // Structure attendue pour la base : 1 répertoire par individu, contenant uniquement des images nommés 1..n.extension
 path_sauvegardes = strcat([path_base slash_c 'data']); // Répertoire où sauvegarder/charger les données calculées
 
