@@ -1,19 +1,5 @@
 clc;
 
-// ======================
-// VARIABLES / CONSTANTES
-// ======================
-
-nombre_individus = 40; 
-nombre_image_apprentissage = 5; // Nombre de photos par individu réservées à l'apprentissage TODO: Faire varier pour observer l'influence
-nombre_images_total = nombre_individus * nombre_image_apprentissage;
-
-nombre_descripteurs = 48; // On garde un certains nombre de descripteurs pour avoir de bons résultats sans trop d'informations supperflus. Fixé "arbitrairement" 
-
-assert_checktrue(nombre_individus > 0);
-assert_checktrue(nombre_image_apprentissage > 0);
-assert_checktrue(nombre_descripteurs > 0);
-
 // =====================
 // PHASE D'APPRENTISSAGE
 // =====================
@@ -21,7 +7,7 @@ assert_checktrue(nombre_descripteurs > 0);
 function apprentissage()
     images = chargerImages(); 
 
-    [T,moyenne,ecart_type] = creerT(images); // T est le tableau individu-attribut
+    [T,moyenne,ecart_type] = creerT(images); // T est le tableau individu attribut
     // afficherImage(T);
 
     T_normalise = normaliser(T, moyenne, ecart_type);
@@ -33,13 +19,13 @@ function apprentissage()
     descripteurs = calculDescripteurs(T_normalise, eigenfaces); // Pas de sens de l'afficher
 endfunction
 
-// Récupère la moitiée des images proposées. Elles vont constituer la base d'apprentissage.
+// Récupère la moitié des images proposées. Elles vont constituer la base d'apprentissage.
 function images = chargerImages()
-    check = chdir(path_images); // Nécéssaire pour faire le ls
+    check = chdir(path_images); // Nécessaire pour faire le ls
     assert_checktrue(check);
 
     resultat_ls = ls(path_images); 
-    // Supprimer ce qui n'est pas répertoire, par exemples de fichiers cachés, README...
+    // Supprimer ce qui n'est pas répertoire, par exemple de fichiers cachés, README...
     for i = 1 : size(resultat_ls, 1)
         if isdir(resultat_ls(i)) == %t then 
             individus($ + 1) = string(resultat_ls(i));
@@ -47,18 +33,18 @@ function images = chargerImages()
     end
     assert_checktrue(size(individus, 1) == nombre_individus); 
 
-    image_num = 0; // Nombre d'images total déjà chargées
-    dernier_identifiant = 0; // Variable temporaire pour la construction du veteur identifiant
+    image_num = 0; // Nombre d'images total déjà chargé
+    dernier_identifiant = 0; // Variable temporaire pour la construction du vecteur identifiant
     for indice_individu = 1 : nombre_individus 
         path_temp = strcat([path_images slash_c individus(indice_individu)]);
         check = chdir(path_temp); 
         assert_checktrue(check);
 
-        // Choix éffectué : prendre les premières images triées par ordre croissant (1...n). D'autres choix possible ayant une influence sur le résultat de l'apprentissage !
+        // Choix effectué : prendre les premières images triées par ordre croissant (1...n). D'autres choix possibles ayant une influence sur le résultat de l'apprentissage !
         for indice_image = 1 : nombre_image_apprentissage
             image_num = image_num + 1;
             nom_image = strcat([string(indice_image) image_extension]); 
-            assert_checktrue(isfile(nom_image)); // Vérifie que l'image éxiste bien
+            assert_checktrue(isfile(nom_image)); // Vérifie que l'image existe bien
             image_originale = chargerImage(nom_image);
             images(:, :, image_num) =  redimensionnerImage(image_originale); // Hypermatrice contenant les images réduites
             vecteur_identifiants(image_num) = individus(indice_individu); // Création d'un vecteur contenant l'identifiant de l'individu pour chaque image chargée
@@ -79,9 +65,9 @@ function [T,moyenne,ecart_type] = creerT (images)
         T(i,:) = imageEnVecteur(images(:,:,i));
     end
     assert_checktrue(size(T,1) == nombre_images_total); 
-    assert_checktrue(size(T,2) == 2576); // Toute l'image rendu sur une ligne. Dépends de la taille des images pour l'apprentissage, on a choisi de travailler uniquement en 56*46
+    assert_checktrue(size(T,2) == 2576); // Toute l'image rendue sur une ligne. Dépends de la taille des images pour l'apprentissage, on a choisi de travailler uniquement en 56*46
 
-    // Calculs de la moyenne et de l'écart-type nécéssaire pour les normalisations
+    // Calculs de la moyenne et de l'écart-type nécessaire pour les normalisations
     moyenne = mean(T,1);
     ecart_type = stdev(T,1);
 
@@ -89,24 +75,12 @@ function [T,moyenne,ecart_type] = creerT (images)
     memoriser(ecart_type,'ecart_type_T', %f);
 endfunction
 
-function T_normalise = normaliser(T, moyenne, ecart_type)
-    nombre_individu = size(T,1); 
-    moyenne = repmat(moyenne, nombre_individu, 1);
-    ecart_type = repmat(ecart_type, nombre_individu, 1);
-    T_normalise = T - moyenne;
-    T_normalise = T_normalise ./ ecart_type;
-
-    // Après normalisation on ne doit pas changer la taille de T
-    assert_checktrue(size(T_normalise, 1) == size(T, 1)); 
-    assert_checktrue(size(T_normalise, 2) == size(T, 2)); 
-endfunction
-
 function eigenfaces = analyseComposantesPrincipales(T_normalise)
-    stacksize('max'); // Eviter des dépassement de pile mémoire sur Scilab pour le calcul de la matrice de covariance
+    stacksize('max'); // Eviter des dépassements de pile mémoire sur Scilab pour le calcul de la matrice de covariance
     [U,S,V] = svd(cov(T_normalise)); // U correspond aux eigenfaces   
 
-    // On tronque les eigenfaces aux 'nombre_descripteurs' premiers vecteurs (colonnes)
-    eigenfaces = U(:, [1:1:nombre_descripteurs]); 
+    // On tronque les eigenfaces aux 'taille_descripteurs' premiers vecteurs (colonnes)
+    eigenfaces = U(:, [1:1:taille_descripteurs]); 
     assert_checktrue(size(eigenfaces, 1) == 2576); 
 
     memoriser(eigenfaces, 'eigenfaces', %f);
@@ -116,7 +90,7 @@ function descripteurs = calculDescripteurs(T_normalise, eigenfaces)
     // Les descripteurs sont en quelque sorte un résumé de la base d'image d'apprentissage
     descripteurs = T_normalise * eigenfaces; 
     assert_checktrue(size(descripteurs, 1) == nombre_images_total);
-    assert_checktrue(size(descripteurs, 2) == nombre_descripteurs);
+    assert_checktrue(size(descripteurs, 2) == taille_descripteurs);
 
     memoriser(descripteurs, 'descripteurs', %f);
 endfunction
