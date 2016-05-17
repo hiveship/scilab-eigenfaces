@@ -110,7 +110,6 @@ function tests()
         assert_checktrue(check);
     end
     taux_reussite = ((nombre_tests - nombre_erreurs) / nombre_tests ) * 100;
-    disp(nombre_tests);
     disp(strcat(['Le taux de réussite pour des descripteurs de taille ' string(taille_descripteurs) ' et ' string(nombre_image_apprentissage) ' images par individus pour l apprentissage est de ' string(taux_reussite) '%' ]));
 endfunction
 
