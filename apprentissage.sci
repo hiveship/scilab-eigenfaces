@@ -14,7 +14,7 @@ function apprentissage()
     //afficherImage(T_normalise);
 
     eigenfaces = analyseComposantesPrincipales(T_normalise);
-    //afficherEigenfaces(eigenfaces); 
+    afficherEigenfaces(eigenfaces); 
 
     descripteurs = calculDescripteurs(T_normalise, eigenfaces); // Pas de sens de l'afficher
 endfunction
@@ -34,7 +34,6 @@ function images = chargerImages()
     assert_checktrue(size(individus, 1) == nombre_individus); 
 
     image_num = 0; // Nombre d'images total déjà chargé
-    dernier_identifiant = 0; // Variable temporaire pour la construction du vecteur identifiant
     for indice_individu = 1 : nombre_individus 
         path_temp = strcat([path_images slash_c individus(indice_individu)]);
         check = chdir(path_temp); 
@@ -75,15 +74,15 @@ function [T,moyenne,ecart_type] = creerT (images)
     memoriser(ecart_type,'ecart_type_T', %f);
 endfunction
 
-function eigenfaces = analyseComposantesPrincipales(T_normalise)
+function eigenfaces_tronquees = analyseComposantesPrincipales(T_normalise)
     stacksize('max'); // Eviter des dépassements de pile mémoire sur Scilab pour le calcul de la matrice de covariance
-    [U,S,V] = svd(cov(T_normalise)); // U correspond aux eigenfaces   
+    [eigenfaces,S,V] = svd(cov(T_normalise)); // U correspond aux eigenfaces   
 
     // On tronque les eigenfaces aux 'taille_descripteurs' premiers vecteurs (colonnes)
-    eigenfaces = U(:, [1:1:taille_descripteurs]); 
-    assert_checktrue(size(eigenfaces, 1) == 2576); 
+    eigenfaces_tronquees = eigenfaces(:, [1:1:taille_descripteurs]); 
+    assert_checktrue(size(eigenfaces_tronquees, 1) == 2576); 
 
-    memoriser(eigenfaces, 'eigenfaces', %f);
+    memoriser(eigenfaces_tronquees, 'eigenfaces', %f);
 endfunction
 
 function descripteurs = calculDescripteurs(T_normalise, eigenfaces) 
