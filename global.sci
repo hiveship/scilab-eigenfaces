@@ -24,7 +24,9 @@ taille_descripteurs = 48; // On garde un certain nombre de eigenfaces pour avoir
 
 assert_checktrue(nombre_individus > 0);
 assert_checktrue(nombre_image_apprentissage > 0);
+assert_checktrue(nombre_image_apprentissage < 10);
 assert_checktrue(taille_descripteurs > 0);
+assert_checktrue(taille_descripteurs < 2576);
 
 // =====================
 // FONCTIONS UTILITAIRES
