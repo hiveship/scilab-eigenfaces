@@ -5,7 +5,7 @@ clc;
 // =====================
 
 function apprentissage()
-    images = chargerImages(); 
+    images = chargerImages();
 
     [T,moyenne,ecart_type] = creerT(images); // T est le tableau individu attribut
     // afficherImage(T);
@@ -14,7 +14,7 @@ function apprentissage()
     //afficherImage(T_normalise);
 
     eigenfaces = analyseComposantesPrincipales(T_normalise);
-    afficherEigenfaces(eigenfaces); 
+    //afficherEigenfaces(eigenfaces); 
 
     descripteurs = calculDescripteurs(T_normalise, eigenfaces); // Pas de sens de l'afficher
 endfunction
@@ -25,7 +25,7 @@ function images = chargerImages()
     assert_checktrue(check);
 
     resultat_ls = ls(path_images); 
-    // Supprimer ce qui n'est pas répertoire, par exemple de fichiers cachés, README...
+    // Supprimer ce qui n'est pas répertoire, par exemple : des fichiers cachés, un README...
     for i = 1 : size(resultat_ls, 1)
         if isdir(resultat_ls(i)) == %t then 
             individus($ + 1) = string(resultat_ls(i));

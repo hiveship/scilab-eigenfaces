@@ -9,7 +9,7 @@ id_image_requete = 6;
 assert_checktrue(id_image_requete > 5 & id_image_requete <= 10); // Prendre une image n'ayant pas été utilisée dans la base de test ! // TODO: Test uniquement valable pour la base d'image fournie
 photo_requete = string(id_image_requete); // Pour permettre la concaténation de strings
 
-affichage = %f; // Indique si il faut afficher le résultat de chaque reconaissance (prends plus de temps si active)
+affichage = %t; // Indique si il faut afficher le résultat de chaque reconaissance (prends plus de temps si active)
 
 // ======================
 // PHASE DE RECONAISSANCE
