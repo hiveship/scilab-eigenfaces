@@ -1,3 +1,7 @@
+## En attente d'une nouvelle rédaction du fichier README...
+
+
+
 Projet de traitement d'image
 =====================
 
