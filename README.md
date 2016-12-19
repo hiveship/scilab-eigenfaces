@@ -1,11 +1,9 @@
-## En attente d'une nouvelle rédaction du fichier README...
 
 
-
-Projet de traitement d'image
+Reconaissance faciale par les Eigenfaces
 =====================
 
-Implémentation Scilab d'une détection de visage par la méthode des eigenfaces. Projet réalisé dans le cadre de la 2e année de formation d'ingénieur à l'ENSSAT.
+Implémentation Scilab d'une détection de visage par la méthode des eigenfaces. Projet de machine learning / traitement d'images réalisé dans le cadre de la 2e année de formation d'ingénieur à l'ENSSAT.
 
 > **Note:**
 
